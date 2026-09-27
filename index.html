@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#123b2a">
+  <title>Tempahan Nutra Haven</title>
+  <style>
+    :root{
+      --green:#123b2a; --green2:#1d533d; --gold:#c9a34a;
+      --cream:#f7f3e8; --ink:#17231d; --muted:#66736c; --line:#e5dfcf;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:Arial,Helvetica,sans-serif; color:var(--ink);
+      background:linear-gradient(180deg,var(--green) 0 210px,var(--cream) 210px 100%);
+    }
+    .wrap{max-width:760px;margin:auto;padding:28px 16px 48px}
+    .hero{text-align:center;color:white;padding:10px 12px 28px}
+    .brand{font-family:Georgia,serif;font-size:36px;letter-spacing:1.5px;color:#e7c86d;margin:0}
+    .tag{margin:8px 0 0;font-size:15px;opacity:.94}
+    .card{
+      background:white;border:1px solid rgba(201,163,74,.45);border-radius:20px;
+      box-shadow:0 14px 35px rgba(0,0,0,.12);padding:22px;margin-bottom:16px
+    }
+    h2{font-size:19px;color:var(--green);margin:0 0 15px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+    .full{grid-column:1/-1}
+    label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
+    input,textarea{
+      width:100%;border:1px solid #d8d8d2;border-radius:10px;padding:12px;
+      font-size:16px;background:#fff;outline:none
+    }
+    input:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,163,74,.12)}
+    textarea{min-height:92px;resize:vertical}
+    .product{
+      display:grid;grid-template-columns:1fr 105px;gap:12px;align-items:center;
+      padding:12px 0;border-bottom:1px solid var(--line)
+    }
+    .product:last-child{border-bottom:0}
+    .pname{font-weight:700;color:var(--green)}
+    .price{font-size:13px;color:var(--muted);margin-top:3px}
+    .qty{display:flex;align-items:center;border:1px solid #ddd;border-radius:10px;overflow:hidden}
+    .qty button{width:34px;height:38px;border:0;background:#f5f3ed;font-size:20px;cursor:pointer;color:var(--green)}
+    .qty input{border:0;border-radius:0;text-align:center;padding:8px 2px;width:37px;box-shadow:none}
+    .summary{background:#f8f6ef;border-radius:12px;padding:14px}
+    .sumrow{display:flex;justify-content:space-between;gap:15px;margin:5px 0}
+    .total{font-size:20px;font-weight:800;color:var(--green);padding-top:8px;border-top:1px solid #ddd4bc;margin-top:10px}
+    .note{font-size:12px;color:var(--muted);line-height:1.5;margin:10px 0 0}
+    .wa{
+      width:100%;border:0;border-radius:12px;padding:15px 18px;background:#25D366;color:white;
+      font-weight:800;font-size:17px;cursor:pointer;margin-top:15px
+    }
+    .wa:hover{filter:brightness(.95)}
+    .error{display:none;color:#a32828;background:#fff0f0;padding:10px;border-radius:9px;margin-top:12px;font-size:13px}
+    footer{text-align:center;color:#68746d;font-size:12px;padding-top:8px}
+    @media(max-width:600px){
+      .grid{grid-template-columns:1fr}.full{grid-column:auto}
+      .brand{font-size:30px}.card{padding:17px}.product{grid-template-columns:1fr 100px}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <h1 class="brand">NUTRA HAVEN</h1>
+      <p class="tag">Borang Tempahan WhatsApp</p>
+    </header>
+
+    <section class="card">
+      <h2>1. Maklumat Pelanggan</h2>
+      <div class="grid">
+        <div><label for="name">Nama *</label><input id="name" autocomplete="name" placeholder="Nama penuh"></div>
+        <div><label for="phone">No. Telefon *</label><input id="phone" inputmode="tel" autocomplete="tel" placeholder="Contoh: 0123456789"></div>
+        <div class="full"><label for="address">Alamat Penghantaran *</label><textarea id="address" autocomplete="street-address" placeholder="Alamat penuh"></textarea></div>
+        <div><label for="postcode">Poskod *</label><input id="postcode" inputmode="numeric" maxlength="5" placeholder="Contoh: 42600"></div>
+        <div><label for="note">Catatan</label><input id="note" placeholder="Pilihan"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2. Pilih Produk</h2>
+      <div id="products"></div>
+      <p class="note">Harga di bawah ialah harga produk. Kos penghantaran akan disahkan melalui WhatsApp.</p>
+    </section>
+
+    <section class="card">
+      <h2>3. Ringkasan Tempahan</h2>
+      <div class="summary">
+        <div id="selected"><span style="color:#66736c">Belum ada produk dipilih.</span></div>
+        <div class="sumrow total"><span>Subtotal</span><span id="total">RM0.00</span></div>
+      </div>
+      <div id="error" class="error"></div>
+      <button class="wa" type="button" onclick="checkout()">Hantar Pesanan ke WhatsApp</button>
+      <p class="note">Apabila butang ditekan, WhatsApp akan dibuka dengan butiran pesanan anda. Semak mesej dan tekan Send untuk menghantar kepada Nutra Haven.</p>
+    </section>
+
+    <footer>© Nutra Haven · Tempahan melalui WhatsApp</footer>
+  </main>
+
+<script>
+const WHATSAPP = "60165335521";
+const items = [
+  ["Teh Moringa",26.90],
+  ["Teh Senna",19.90],
+  ["Teh Senna Stevia Lemon",30.90],
+  ["Teh Lemon",24.90],
+  ["Teh Moringa & Pegaga",26.90],
+  ["Teh Belalai Gajah",28.90],
+  ["Teh Durian Belanda",25.90],
+  ["Teh Misai Kucing",29.90],
+  ["Aurora Bliss",20.90],
+  ["Teh Moringa Stevia Lemon",30.90]
+];
+
+const box = document.getElementById("products");
+items.forEach((p,i)=>{
+  box.insertAdjacentHTML("beforeend",`
+    <div class="product">
+      <div><div class="pname">${p[0]}</div><div class="price">RM${p[1].toFixed(2)}</div></div>
+      <div class="qty">
+        <button type="button" aria-label="Kurangkan" onclick="changeQty(${i},-1)">−</button>
+        <input id="q${i}" type="number" min="0" value="0" inputmode="numeric" oninput="update()">
+        <button type="button" aria-label="Tambah" onclick="changeQty(${i},1)">+</button>
+      </div>
+    </div>`);
+});
+
+function changeQty(i,d){
+  const el=document.getElementById("q"+i);
+  el.value=Math.max(0,(parseInt(el.value)||0)+d);
+  update();
+}
+function order(){
+  return items.map((p,i)=>({name:p[0],price:p[1],qty:Math.max(0,parseInt(document.getElementById("q"+i).value)||0)}))
+              .filter(x=>x.qty>0);
+}
+function update(){
+  const chosen=order(), target=document.getElementById("selected");
+  let total=0;
+  if(!chosen.length) target.innerHTML='<span style="color:#66736c">Belum ada produk dipilih.</span>';
+  else target.innerHTML=chosen.map(x=>{
+    const s=x.price*x.qty; total+=s;
+    return `<div class="sumrow"><span>${x.name} × ${x.qty}</span><strong>RM${s.toFixed(2)}</strong></div>`;
+  }).join("");
+  document.getElementById("total").textContent="RM"+total.toFixed(2);
+}
+function checkout(){
+  const name=document.getElementById("name").value.trim();
+  const phone=document.getElementById("phone").value.trim();
+  const address=document.getElementById("address").value.trim();
+  const postcode=document.getElementById("postcode").value.trim();
+  const note=document.getElementById("note").value.trim();
+  const chosen=order();
+  const err=document.getElementById("error");
+  if(!name || !phone || !address || !postcode || !chosen.length){
+    err.style.display="block";
+    err.textContent="Sila lengkapkan nama, nombor telefon, alamat, poskod dan pilih sekurang-kurangnya satu produk.";
+    return;
+  }
+  err.style.display="none";
+  let total=chosen.reduce((a,x)=>a+x.price*x.qty,0);
+  const lines=chosen.map(x=>`• ${x.name} × ${x.qty} — RM${(x.price*x.qty).toFixed(2)}`).join("\n");
+  const msg=`*TEMPAHAN NUTRA HAVEN*
+
+Nama: ${name}
+No. Telefon: ${phone}
+
+*Pesanan*
+${lines}
+
+*Subtotal: RM${total.toFixed(2)}*
+
+*Alamat Penghantaran*
+${address}
+Poskod: ${postcode}${note ? `
+
+Catatan: ${note}` : ""}
+
+Mohon sahkan jumlah akhir termasuk kos penghantaran. Terima kasih.`;
+  window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`,"_blank");
+}
+update();
+</script>
+</body>
+</html>
